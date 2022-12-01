@@ -47,6 +47,8 @@ private slots:
 
     void on_btnRemove_clicked();
 
+    void on_btnInsert_clicked();
+
 private:
     Ui::MainWindow *ui;
     TreeModel *jsonModel;

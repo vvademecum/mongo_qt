@@ -17,6 +17,9 @@
 #include <QComboBox>
 #include <QDebug>
 #include <QDateTime>
+#include <bsoncxx/builder/basic/kvp.hpp>
+#include <bsoncxx/types.hpp>
+#include <mongocxx/exception/exception.hpp>
 
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
@@ -24,6 +27,8 @@ using bsoncxx::builder::stream::document;
 using bsoncxx::builder::stream::finalize;
 using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
+using bsoncxx::builder::basic::kvp;
+
 
 
 mongocxx::database db;
@@ -95,7 +100,7 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
 
     db = client[currentBase_c];
 
-    QMessageBox::warning(this, "Текущая коллекция", currentColl);
+    //QMessageBox::warning(this, "Текущая коллекция", currentColl);
 
     QByteArray currentColl_ba = currentColl.toLocal8Bit();
     const char *currentColl_c = currentColl_ba.data();
@@ -108,9 +113,16 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
     json_doc.remove(json_doc.length()-2, 2);
     json_doc.append(']');
 
-    qDebug() << json_doc;
+    //qDebug() << json_doc;
 
-    if(json_doc.isEmpty() || json_doc.length() < 5) return;
+    if(json_doc.isEmpty() || json_doc.length() < 5) {
+        QModelIndex index = ui->treeView->selectionModel()->currentIndex().parent().parent();
+        QAbstractItemModel *model = ui->treeView->model();
+        if (model->removeRow(index.row(), index.parent()))
+            updateIndex();
+        qDebug() << "Коллекция пуста!";
+        return;
+    };
     jsonModel->loadJson(json_doc, currentColl);
     ui->treeView->expandAll();
 }
@@ -136,14 +148,8 @@ void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
 void MainWindow::initEdit()
 {
 
-//    connect(ui->btnInsert,&QPushButton::clicked,this,[this](){
-//        QModelIndex index = ui->treeView->selectionModel()->currentIndex();
-//        if(!index.isValid())
-//            return;
-//        QAbstractItemModel *model = ui->treeView->model();
-//        if(!model->insertRow(index.row()+1,index.parent()))
-//            return;
-//        updateIndex();
+//    connect(ui->btnInsert ,&QPushButton::clicked,this,[this](){
+
 
 //    });
 
@@ -164,25 +170,74 @@ void MainWindow::initEdit()
 //        updateIndex();
 //    });
 
-    connect(ui->btnRemove,&QPushButton::clicked,this,[this](){
-        QModelIndex index = ui->treeView->selectionModel()->currentIndex();
-        QAbstractItemModel *model = ui->treeView->model();
-        if (model->removeRow(index.row(), index.parent()))
-            updateIndex();
-    });
+//    connect(ui->btnRemove,&QPushButton::clicked,this,[this](){
+//        QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+//        QAbstractItemModel *model = ui->treeView->model();
+//        if (model->removeRow(index.row(), index.parent()))
+//            updateIndex();
+//    });
 }
+
+void MainWindow::on_btnInsert_clicked()
+{
+    QModelIndex index = ui->treeView->selectionModel()->currentIndex();
+    if(!index.isValid())
+        return;
+    QAbstractItemModel *model = ui->treeView->model();
+
+    try {
+        mongocxx::uri uri("mongodb://127.0.0.1:27017");
+        mongocxx::client client{uri};
+
+        const QString& currentBase = ui->comboBox->currentText();
+        QByteArray currentBase_ba = currentBase.toLocal8Bit();
+        const char *currentBase_c = currentBase_ba.data();
+
+        db = client[currentBase_c];
+
+        const QString& currentColl = ui->listWidget->currentItem()->text();
+        QByteArray currentColl_ba = currentColl.toLocal8Bit();
+        const char *currentColl_c = currentColl_ba.data();
+
+        std::string keyName = "name";
+        std::string valueName = "[name_value]";
+        std::string keyAge = "age";
+        std::string valueAge = "[age_value]";
+        std::string keyDate = "date";
+        std::string valueDate = "[date_value]";
+        bsoncxx::builder::basic::document basic_builder{};
+        basic_builder.append(kvp(keyName, valueName), kvp(keyAge, valueAge), kvp(keyDate, valueDate));
+        bsoncxx::stdx::optional<mongocxx::result::insert_one> result = db[currentColl_c].insert_one(basic_builder.view());
+
+        QString json_doc = "[";
+        mongocxx::cursor cursor = db[currentColl_c].find({});
+        for(auto doc : cursor) {
+          json_doc.append(QString::fromStdString(bsoncxx::to_json(doc))).append(", ");
+        }
+        json_doc.remove(json_doc.length()-2, 2);
+        json_doc.append(']');
+
+        if(json_doc.isEmpty() || json_doc.length() < 5) {
+            qDebug() << "Коллекция пуста!";
+
+            QModelIndex index = ui->treeView->selectionModel()->currentIndex().parent().parent();
+            QAbstractItemModel *model = ui->treeView->model();
+            if (model->removeRow(index.row(), index.parent()))
+                updateIndex();
+        };
+
+        jsonModel->loadJson(json_doc, currentColl);
+        ui->treeView->expandAll();
+    } catch (const mongocxx::exception &ex) {
+        qWarning() << "Ошибка при удалении: " << ex.what();
+    }
+}
+
 
 void MainWindow::on_btnRemove_clicked()
 {
     QModelIndex index = ui->treeView->selectionModel()->currentIndex();
     QAbstractItemModel *model = ui->treeView->model();
-  //  TreeModel *myModel = qobject_cast<TreeModel*>( model);
-
-//    TreeItem *item = getItem(index);
-//    item->data());
-
-    //Container cont =  myModel->GetContainer(index);
-    //qDebug() << index.data();
 
     mongocxx::uri uri("mongodb://127.0.0.1:27017");
     mongocxx::client client{uri};
@@ -198,44 +253,41 @@ void MainWindow::on_btnRemove_clicked()
     const char *currentColl_c = currentColl_ba.data();
 
 
-//        QModelIndex index = ui->treeView->selectedIndexes()[0];
-//            selected_name = index.model().itemFromIndex(index).text()
+    qDebug() << model->index(index.row(), 0, index.parent()).data().value<QString>();
+    const QString& nameField = model->index(index.row(), 0, index.parent()).data().value<QString>();
+    std::string namef = nameField.toStdString();
 
-    //qDebug() << result->deleted_count();
-    //qDebug() << model->data(index);
-//        qDebug() << model[0].data(index);
+    qDebug() << model->index(index.row(), 1, index.parent()).data().value<QString>();
+    const QString& valueField = model->index(index.row(), 1, index.parent()).data().value<QString>();
+    std::string valf = valueField.toStdString();
 
-//            ui->treeView->selectionModel()->setCurrentIndex(model->index(0, 0, index),
-//                                                            QItemSelectionModel::ClearAndSelect);
-//            index = ui->treeView->selectionModel()->currentIndex();
-//                model = ui->treeView->model();
-            qDebug() << model->index(index.row(), 0, index.parent()).data().value<QString>();
-            const QString& nameField = model->index(index.row(), 0, index.parent()).data().value<QString>();
-            QByteArray nameField_ba = nameField.toLocal8Bit();
-            const char *nameField_c = nameField_ba.data();
-            qDebug() << model->index(index.row(), 1, index.parent()).data().value<QString>();
-            const QString& valueField = model->index(index.row(), 1, index.parent()).data().value<QString>();
-            QByteArray valueField_ba = valueField.toLocal8Bit();
-            const char *valueField_c = valueField_ba.data();
+    try {
+        bsoncxx::builder::basic::document basic_builder{};
+        basic_builder.append(kvp(namef, valf));
+        bsoncxx::stdx::optional<mongocxx::result::delete_result> result = db[currentColl_c].delete_one(basic_builder.view());
 
-            bsoncxx::stdx::optional<mongocxx::result::delete_result> result = db[currentColl_c].delete_one(document{} << nameField_c << valueField_c << finalize);
+        QString json_doc = "[";
+        mongocxx::cursor cursor = db[currentColl_c].find({});
+        for(auto doc : cursor) {
+          json_doc.append(QString::fromStdString(bsoncxx::to_json(doc))).append(", ");
+        }
+        json_doc.remove(json_doc.length()-2, 2);
+        json_doc.append(']');
 
-//                  ui->treeView->selectionModel()->setCurrentIndex(model->index(0, 1, index),
-//                                                                  QItemSelectionModel::ClearAndSelect);
-//                  index = ui->treeView->selectionModel()->currentIndex();
-//                     model = ui->treeView->model();
-//                  qDebug() << model->data(index);
-//            //updateIndex();
+        if(json_doc.isEmpty() || json_doc.length() < 5) {
+            qDebug() << "Коллекция пуста!";
 
+            QModelIndex index = ui->treeView->selectionModel()->currentIndex().parent().parent();
+            QAbstractItemModel *model = ui->treeView->model();
+            if (model->removeRow(index.row(), index.parent()))
+                updateIndex();
+        };
 
-
-        //qDebug() << model[2].data(index);
-
-
-    //qDebug() << ui->treeView->selectionModel()->objectName();
-
-    //if (model->removeRow(index.row(), index.parent()))
-        //updateIndex();
+        jsonModel->loadJson(json_doc, currentColl);
+        ui->treeView->expandAll();
+    } catch (const mongocxx::exception &ex) {
+        qWarning() << "Ошибка при удалении: " << ex.what();
+    }
 }
 
 void MainWindow::updateIndex()

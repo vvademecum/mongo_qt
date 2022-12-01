@@ -119,6 +119,29 @@
      <string>Remove</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="btnInsert">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>150</y>
+      <width>101</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Insert</string>
+    </property>
+   </widget>
+   <zorder>btnInsert</zorder>
+   <zorder>treeView</zorder>
+   <zorder>pushButton_2</zorder>
+   <zorder>pushButton</zorder>
+   <zorder>listWidget</zorder>
+   <zorder>comboBox</zorder>
+   <zorder>label</zorder>
+   <zorder>textEdit</zorder>
+   <zorder>label_2</zorder>
+   <zorder>btnRemove</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

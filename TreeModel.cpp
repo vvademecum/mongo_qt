@@ -33,14 +33,14 @@ bool TreeModel::loadJson(const QString &jsonDoc_str, const QString &collName)
 
     if(json_doc.isObject()){
         parseObject(collName, json_doc.object(),theRootItem);
-                qDebug() << "is object";
+        //        qDebug() << "is object";
     }else if(json_doc.isArray()){
         parseArray(collName, json_doc.array(),theRootItem);
-        qDebug() << "is array";
+      //  qDebug() << "is array";
     }
     emit endResetModel();
 
-    qDebug()<<"load json file";
+    qDebug()<<"json получен";
     return true;
 }
 
@@ -74,7 +74,6 @@ bool TreeModel::dumpJson(const QString &filepath)
     file.write(json_doc.toJson(QJsonDocument::Indented));
     file.close();
 
-    qDebug()<<"dump json file";
     return true;
 }
 
@@ -282,7 +281,7 @@ QVariantMap TreeModel::dumpObject(TreeItem *&item) const
 
 QVariantList TreeModel::dumpArray(TreeItem *&item) const
 {
-    QVariantList json_arr; //QVariantList对应QJsonArray
+    QVariantList json_arr;
     const int child_count=item->childCount();
     for(int i=0;i<child_count;i++){
         TreeItem *child=item->childItem(i);
