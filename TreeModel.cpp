@@ -45,8 +45,6 @@ bool TreeModel::loadJson(const QString &jsonDoc_str, const QString &collName)
 
     }
     emit endResetModel();
-
-    qDebug()<<"json получен";
     return true;
 }
 

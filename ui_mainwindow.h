@@ -47,6 +47,9 @@ public:
     QLabel *label_7;
     QLabel *label_8;
     QLabel *label_9;
+    QTextEdit *collectionNameEdit;
+    QPushButton *addCollectionBtn;
+    QPushButton *removeCollectionBtn;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -54,18 +57,18 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(878, 628);
+        MainWindow->resize(878, 694);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         treeView = new QTreeView(centralwidget);
         treeView->setObjectName(QString::fromUtf8("treeView"));
-        treeView->setGeometry(QRect(10, 330, 711, 251));
+        treeView->setGeometry(QRect(10, 330, 711, 311));
         pushButton_2 = new QPushButton(centralwidget);
         pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
         pushButton_2->setGeometry(QRect(250, 30, 201, 31));
         listWidget = new QListWidget(centralwidget);
         listWidget->setObjectName(QString::fromUtf8("listWidget"));
-        listWidget->setGeometry(QRect(10, 110, 711, 141));
+        listWidget->setGeometry(QRect(10, 110, 691, 141));
         comboBox = new QComboBox(centralwidget);
         comboBox->setObjectName(QString::fromUtf8("comboBox"));
         comboBox->setGeometry(QRect(310, 70, 141, 31));
@@ -78,7 +81,7 @@ public:
         label_2->setGeometry(QRect(9, 9, 212, 17));
         btnRemove = new QPushButton(centralwidget);
         btnRemove->setObjectName(QString::fromUtf8("btnRemove"));
-        btnRemove->setGeometry(QRect(730, 490, 111, 41));
+        btnRemove->setGeometry(QRect(730, 600, 111, 41));
         QPalette palette;
         QBrush brush(QColor(0, 0, 0, 255));
         brush.setStyle(Qt::SolidPattern);
@@ -157,7 +160,7 @@ public:
         btnRemove->setPalette(palette);
         btnInsert = new QPushButton(centralwidget);
         btnInsert->setObjectName(QString::fromUtf8("btnInsert"));
-        btnInsert->setGeometry(QRect(730, 540, 111, 41));
+        btnInsert->setGeometry(QRect(730, 550, 111, 41));
         QPalette palette1;
         palette1.setBrush(QPalette::Active, QPalette::WindowText, brush);
         QBrush brush10(QColor(69, 213, 123, 255));
@@ -235,13 +238,13 @@ public:
         label_3->setStyleSheet(QString::fromUtf8("font: 14pt \"Ubuntu\";"));
         startDate = new QDateTimeEdit(centralwidget);
         startDate->setObjectName(QString::fromUtf8("startDate"));
-        startDate->setGeometry(QRect(730, 350, 141, 26));
+        startDate->setGeometry(QRect(730, 410, 141, 26));
         endDate = new QDateTimeEdit(centralwidget);
         endDate->setObjectName(QString::fromUtf8("endDate"));
-        endDate->setGeometry(QRect(730, 400, 141, 26));
+        endDate->setGeometry(QRect(730, 460, 141, 26));
         searchBtn = new QPushButton(centralwidget);
         searchBtn->setObjectName(QString::fromUtf8("searchBtn"));
-        searchBtn->setGeometry(QRect(730, 440, 111, 41));
+        searchBtn->setGeometry(QRect(730, 500, 111, 41));
         QPalette palette2;
         palette2.setBrush(QPalette::Active, QPalette::WindowText, brush);
         QBrush brush16(QColor(233, 236, 116, 255));
@@ -312,16 +315,25 @@ public:
         searchBtn->setPalette(palette2);
         regexWrd = new QTextEdit(centralwidget);
         regexWrd->setObjectName(QString::fromUtf8("regexWrd"));
-        regexWrd->setGeometry(QRect(570, 290, 301, 31));
+        regexWrd->setGeometry(QRect(730, 350, 141, 31));
         label_7 = new QLabel(centralwidget);
         label_7->setObjectName(QString::fromUtf8("label_7"));
-        label_7->setGeometry(QRect(570, 270, 131, 20));
+        label_7->setGeometry(QRect(730, 330, 131, 20));
         label_8 = new QLabel(centralwidget);
         label_8->setObjectName(QString::fromUtf8("label_8"));
-        label_8->setGeometry(QRect(730, 330, 131, 20));
+        label_8->setGeometry(QRect(730, 390, 131, 20));
         label_9 = new QLabel(centralwidget);
         label_9->setObjectName(QString::fromUtf8("label_9"));
-        label_9->setGeometry(QRect(730, 380, 131, 20));
+        label_9->setGeometry(QRect(730, 440, 131, 20));
+        collectionNameEdit = new QTextEdit(centralwidget);
+        collectionNameEdit->setObjectName(QString::fromUtf8("collectionNameEdit"));
+        collectionNameEdit->setGeometry(QRect(710, 110, 161, 31));
+        addCollectionBtn = new QPushButton(centralwidget);
+        addCollectionBtn->setObjectName(QString::fromUtf8("addCollectionBtn"));
+        addCollectionBtn->setGeometry(QRect(710, 150, 161, 31));
+        removeCollectionBtn = new QPushButton(centralwidget);
+        removeCollectionBtn->setObjectName(QString::fromUtf8("removeCollectionBtn"));
+        removeCollectionBtn->setGeometry(QRect(710, 190, 161, 31));
         MainWindow->setCentralWidget(centralwidget);
         btnInsert->raise();
         treeView->raise();
@@ -340,6 +352,9 @@ public:
         label_7->raise();
         label_8->raise();
         label_9->raise();
+        collectionNameEdit->raise();
+        addCollectionBtn->raise();
+        removeCollectionBtn->raise();
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
         menubar->setGeometry(QRect(0, 0, 878, 22));
@@ -366,6 +381,8 @@ public:
         label_7->setText(QApplication::translate("MainWindow", "\320\262\320\272\320\273\321\216\321\207\320\260\320\265\321\202 \321\201\321\202\321\200\320\276\320\272\321\203:", nullptr));
         label_8->setText(QApplication::translate("MainWindow", "\320\276\321\202:", nullptr));
         label_9->setText(QApplication::translate("MainWindow", "\320\277\320\276:", nullptr));
+        addCollectionBtn->setText(QApplication::translate("MainWindow", "Add collection", nullptr));
+        removeCollectionBtn->setText(QApplication::translate("MainWindow", "Drop collection", nullptr));
     } // retranslateUi
 
 };

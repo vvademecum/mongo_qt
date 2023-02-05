@@ -74,6 +74,10 @@ void MainWindow::on_pushButton_2_clicked() //connect
 
 void MainWindow::on_comboBox_currentIndexChanged(const QString &arg1)
 {
+    collectionsUpdate();
+}
+
+void MainWindow::collectionsUpdate(){
     auto collections = mongoStuff->getCollections(ui->comboBox->currentText());
     ui->listWidget->clear();
     for(std::string col : collections){
@@ -103,7 +107,6 @@ void MainWindow::on_btnInsert_clicked()
     }
 }
 
-
 void MainWindow::on_btnRemove_clicked()
 {
 
@@ -111,6 +114,8 @@ void MainWindow::on_btnRemove_clicked()
     QAbstractItemModel *model = ui->treeView->model();
 
     if(!index.isValid())
+        return;
+    if(ui->listWidget->currentItem() == nullptr)
         return;
 
     QString curValue = model->index(index.row(), 1, index.parent()).data().value<QString>();
@@ -181,9 +186,6 @@ void MainWindow::updateDocument(){
 
 void MainWindow::on_searchBtn_clicked()
 {
-    qWarning() << ui->startDate->dateTime();
-    qWarning() << ui->endDate->dateTime();
-
     qint64 millisStart = ui->startDate->dateTime().toMSecsSinceEpoch();
     std::chrono::milliseconds chronoMillisStart(millisStart);
     bsoncxx::types::b_date startDT(chronoMillisStart);
@@ -195,7 +197,7 @@ void MainWindow::on_searchBtn_clicked()
     if(ui->listWidget->currentItem() == nullptr)
         return;
 
-    QString json_doc = mongoStuff->filter(ui->listWidget->currentItem()->text(), startDT, endDT);
+    QString json_doc = mongoStuff->filter(ui->listWidget->currentItem()->text(), startDT, endDT, ui->regexWrd->toPlainText());
 
     fillTree(json_doc);
 }
@@ -209,4 +211,23 @@ void MainWindow::fillTree(QString json_doc){
     };
     jsonModel->loadJson(json_doc, ui->listWidget->currentItem()->text());
     ui->treeView->expandAll();
+}
+
+void MainWindow::on_addCollectionBtn_clicked()
+{
+    if(ui->collectionNameEdit->toPlainText() == nullptr || ui->collectionNameEdit->toPlainText().trimmed() == "" || ui->comboBox->currentText() == nullptr)
+        return;
+
+    mongoStuff->createCollection(ui->collectionNameEdit->toPlainText().toStdString(), ui->comboBox->currentText());
+    collectionsUpdate();
+}
+
+void MainWindow::on_removeCollectionBtn_clicked()
+{
+    if(ui->listWidget->currentItem() == nullptr)
+        return;
+
+    mongoStuff->removeCollection(ui->listWidget->currentItem()->text());
+    collectionsUpdate();
+    fillTree("");
 }

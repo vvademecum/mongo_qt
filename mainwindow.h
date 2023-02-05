@@ -56,6 +56,13 @@ private slots:
 
     void fillTree(QString json_doc);
 
+    void on_addCollectionBtn_clicked();
+
+    void collectionsUpdate();
+
+
+    void on_removeCollectionBtn_clicked();
+
 public slots:
 
     void updateDocument();

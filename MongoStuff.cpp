@@ -9,9 +9,12 @@
 #include <bsoncxx/json.hpp>
 #include <bsoncxx/builder/basic/kvp.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/types.hpp>
 using bsoncxx::builder::basic::kvp;
 using bsoncxx::builder::basic::make_document;
+using bsoncxx::builder::basic::make_array;
+
 
 MongoStuff::MongoStuff()
 {
@@ -60,13 +63,11 @@ QString MongoStuff::getDocuments(QString collectionName){
 
 void MongoStuff::insertColl(QString collectionName){
     try {
-        std::string keyName = "name";
-        std::string valueName = "[name_value]";
-        std::string keyAge = "age";
+        std::string keyName = "info";
+        std::string valueName = "[string_value]";
+        std::string keyAge = "number";
         int valueAge = 0;
         std::string keyDate = "date";
-
-        //std::string valueDate = "[date_value]";
 
         bsoncxx::builder::basic::document basic_builder{};
         basic_builder.append(kvp(keyName, valueName), kvp(keyAge, valueAge), kvp(keyDate, bsoncxx::types::b_date(std::chrono::system_clock::now())));
@@ -88,7 +89,7 @@ void MongoStuff::removeItem(QString collectionName, QString objectId){
 void MongoStuff::updateDocument(QString collectionName, QString idDocument, QString keyField, QString valueField){
 
     try {
-        if(keyField == "age")
+        if(keyField == "number")
             db[collectionName.toUtf8().constData()].update_one(make_document(kvp("_id", bsoncxx::oid(idDocument.toUtf8().constData()))),
                                                                make_document(kvp("$set", make_document(kvp(keyField.toStdString(), valueField.toDouble())))));
         else if(keyField == "date"){
@@ -100,7 +101,6 @@ void MongoStuff::updateDocument(QString collectionName, QString idDocument, QStr
             db[collectionName.toUtf8().constData()].update_one(make_document(kvp("_id", bsoncxx::oid(idDocument.toUtf8().constData()))),
                                                                make_document(kvp("$set", make_document(kvp(keyField.toStdString(), date)))));
         }
-
         else
             db[collectionName.toUtf8().constData()].update_one(make_document(kvp("_id", bsoncxx::oid(idDocument.toUtf8().constData()))),
                                                                make_document(kvp("$set", make_document(kvp(keyField.toStdString(), valueField.toStdString())))));
@@ -111,12 +111,19 @@ void MongoStuff::updateDocument(QString collectionName, QString idDocument, QStr
 }
 
 
-QString MongoStuff::filter(QString collectionName, bsoncxx::types::b_date startDT, bsoncxx::types::b_date endDT){
+QString MongoStuff::filter(QString collectionName, bsoncxx::types::b_date startDT, bsoncxx::types::b_date endDT, QString word){
 
     QString jsonDocuments = "[";
-    mongocxx::cursor cursor = db[collectionName.toUtf8().constData()].find(make_document(kvp("date",
-                                                                           make_document(kvp("$gt", startDT),
-                                                                                         kvp("$lte", endDT)))));
+
+    mongocxx::cursor cursor = db[collectionName.toUtf8().constData()].find(
+                make_document(kvp("$and", make_array(
+                                            make_document(
+                                             kvp("date", make_document(kvp("$gt", startDT), kvp("$lte", endDT)))
+                                            ),
+                                            make_document(
+                                             kvp("info",make_document(kvp("$regex", word.toStdString())))
+                                            )
+                                      ))));
     for(auto doc : cursor) {
       jsonDocuments.append(QString::fromStdString(bsoncxx::to_json(doc))).append(", ");
     }
@@ -124,6 +131,20 @@ QString MongoStuff::filter(QString collectionName, bsoncxx::types::b_date startD
     jsonDocuments.append(']');
 
     return jsonDocuments;
+}
+
+void MongoStuff::createCollection(std::string collectionName, QString dbName){
+
+    auto collections = getCollections(dbName);
+
+    if(std::find(collections.begin(), collections.end(), collectionName) != collections.end())
+        return;
+
+    db.create_collection(collectionName);
+}
+
+void MongoStuff::removeCollection(QString collectionName){
+    db[collectionName.toUtf8().constData()].drop();
 }
 
 
